@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PolyBank ♻️ – Reuse, Reward, Replant</title>
+  <style>
+    :root {
+      --bg1: #b2ebf2;
+      --bg2: #a5d6a7;
+      --card: rgba(255, 255, 255, 0.9);
+      --accent: #2e7d32;
+      --btn: #81c784;
+      --btn-hover: #66bb6a;
+      --text: #000000;
+      --error: #d32f2f;
+      --success: #388e3c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 18px 20px;
+      background: var(--accent);
+      color: var(--text);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeInDown 1s ease forwards;
+    }
+    .container { max-width: 1100px; margin: 22px auto; padding: 0 16px; flex: 1; }
+    .grid { display: grid; grid-template-columns: 1fr 420px; gap: 18px; }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(30px);
+      animation-fill-mode: forwards;
+      animation-duration: 0.8s;
+      animation-timing-function: ease;
+      animation-name: fadeInUp;
+      animation-delay: 0.2s;
+      margin-bottom: 16px;
+    }
+    h1,h2 { margin: 0 0 12px 0; }
+    label { display: block; margin: 8px 0 4px; font-size: 13px; }
+    input, button {
+      width: 100%;
+      padding: 9px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 12px;
+      font-size: 14px;
+      transition: box-shadow 0.3s ease;
+    }
+    input {
+      background: #e0f2f1;
+      color: #000;
+      box-shadow: inset 1px 1px 5px rgba(0,0,0,0.1);
+      border: 2px solid transparent;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      background: #d0f0ef;
+    }
+    button {
+      background: var(--btn);
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.15s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    button:disabled {
+      background: #b0b0b0;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    button:hover:not(:disabled) { background: var(--btn-hover); transform: scale(1.05); }
+    button:active:not(:disabled) { transform: scale(0.95); }
+    .wallet .big {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      animation: countUp 1s ease forwards;
+    }
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #c8e6c9;
+      color: #000;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-weight: 600;
+      display: none;
+      z-index: 999;
+      pointer-events: none;
+      animation: fadeInMoveUp 0.5s ease forwards;
+    }
+    .notification.error { background: var(--error); color: white; }
+    .notification.success { background: var(--success); color: white; }
+    .uploads, .leaderboard ul {
+      margin-top: 10px;
+      padding: 0;
+      list-style: none;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .upload-item, .leaderboard li {
+      background: #f1f8e9;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      transition: background 0.25s ease;
+      cursor: default;
+    }
+    .upload-item.verified {
+      background: #c8e6c9;
+      font-weight: 600;
+    }
+    .upload-item.pending {
+      background: #fff9c4;
+      font-weight: 500;
+    }
+    canvas {
+      background: linear-gradient(180deg, #c5e1a5, #81c784);
+      border-radius: 12px;
+      display: block;
+      margin: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .note {
+      font-size: 13px;
+      background: #e0f7fa;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      color: #004d40;
+      user-select: none;
+    }
+    footer {
+      background: var(--accent);
+      color: var(--text);
+      text-align: center;
+      padding: 12px 10px;
+      font-size: 14px;
+      font-weight: 500;
+      user-select: none;
+      margin-top: auto;
+      box-shadow: 0 -4px 8px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 950px) {
+      .grid { grid-template-columns: 1fr; }
+      .card { animation-delay: 0 !important; }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInMoveUp {
+      from { opacity: 0; transform: translateY(30px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    @keyframes countUp {
+      0% { opacity: 0.3; transform: translateY(10px);}
+      100% { opacity: 1; transform: translateY(0);}
+    }
+    /* Button ripple effect */
+    button.ripple::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.3);
+      opacity: 0;
+      transform: scale(0);
+      transition: transform 0.4s, opacity 0.8s;
+      z-index: 1;
+    }
+    button.ripple:active::after {
+      opacity: 1;
+      transform: scale(1);
+      transition: 0s;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌱 PolyBank – Reuse | Reward | Replant</h1>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <!-- LEFT SIDE -->
+    <div>
+      <div class="card" style="animation-delay: 0.2s;">
+        <h2>📸 Upload Proof</h2>
+        <div class="note" aria-live="polite">
+          <strong>NOTE:</strong><br>
+          • Image must clearly show the weighing machine and the bundle of polythene bags.<br>
+          • Video must show the bundle being opened on the scale for verification.<br>
+          • Verified submissions will automatically update your wallet and total plastic weight.
+        </div>
+        <label for="weightInput">Weight (kg)</label>
+        <input type="number" id="weightInput" placeholder="e.g. 1.0" min="0.1" step="0.1" aria-describedby="weightHelp" />
+        
+        <label for="imageFile">Image</label>
+        <input type="file" id="imageFile" accept="image/*" aria-describedby="imageHelp" />
+        
+        <label for="videoFile">Video</label>
+        <input type="file" id="videoFile" accept="video/*" aria-describedby="videoHelp" />
+        
+        <button id="uploadBtn" class="ripple" onclick="uploadProof()">Upload Proof</button>
+        <ul class="uploads" id="uploadsList" aria-live="polite" aria-label="Uploads list"></ul>
+      </div>
+
+      <div class="card" style="animation-delay: 0.4s;">
+        <h2>🎮 Awareness Game</h2>
+        <button id="startGameBtn" class="ripple" onclick="startGame()">Start Game (20 coins)</button>
+        <canvas id="gameCanvas" width="560" height="320" style="display:none"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div>
+      <div class="card wallet" style="animation-delay: 0.6s;">
+        <h2>💰 Wallet</h2>
+        <div class="big" id="coinCount" aria-live="polite">0</div>
+        <div>Verified kg: <span id="kgCount" aria-live="polite">0</span></div>
+        <div>Money redeemed: ₹<span id="moneyCount" aria-live="polite">0</span></div>
+      </div>
+
+      <div class="card" style="margin-top:12px; animation-delay: 0.8s;">
+        <h2>↕️ Actions</h2>
+        <button id="convertBtn" class="ripple" onclick="convertCoins()">Convert 50 coins → ₹1</button>
+        <button id="verifyBtn" class="ripple" onclick="verifySubmissions()">Check Verification</button>
+      </div>
+
+      <div class="card leaderboard" style="animation-delay: 1s;">
+        <h2>🏆 Leaderboard</h2>
+        <ul id="leaderList" aria-live="polite" aria-label="Leaderboard"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2025 Janani Shree Priya | Developer of this site
+</footer>
+
+<div class="notification" id="notifyBox"></div>
+
+<script>
+  // State from localStorage or defaults
+  let coins = parseInt(localStorage.getItem('coins')) || 0;
+  let kg = parseFloat(localStorage.getItem('kg')) || 0;
+  let money = parseInt(localStorage.getItem('money')) || 0;
+  let uploads = JSON.parse(localStorage.getItem('uploads') || '[]');
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+  
+  // Helper: Show notification with message, type = 'success' or 'error'
+  function notify(msg, type = 'success') {
+    const box = document.getElementById('notifyBox');
+    box.textContent = msg;
+    box.className = 'notification ' + type;
+    box.style.display = 'block';
+    setTimeout(() => box.style.display = 'none', 3000);
+  }
+
+  // Animate value counting up for wallet numbers
+  function animateCount(element, start, end) {
+    let range = end - start;
+    let stepTime = Math.abs(Math.floor(1000 / range));
+    let current = start;
+    if(range <= 0) {
+      element.textContent = end.toString();
+      return;
+    }
+    let timer = setInterval(() => {
+      current++;
+      element.textContent = current.toString();
+      if(current === end) {
+        clearInterval(timer);
+      }
+    }, stepTime);
+  }
+
+  // Update wallet UI and persist state
+  function updateWallet() {
+    const coinEl = document.getElementById('coinCount');
+    const kgEl = document.getElementById('kgCount');
+    const moneyEl = document.getElementById('moneyCount');
+
+    animateCount(coinEl, parseInt(coinEl.textContent), coins);
+    animateCount(kgEl, parseFloat(kgEl.textContent) || 0, kg.toFixed(1));
+    animateCount(moneyEl, parseInt(moneyEl.textContent), money);
+
+    localStorage.setItem('coins', coins);
+    localStorage.setItem('kg', kg);
+    localStorage.setItem('money', money);
+  }
+
+  // Render uploads list with verified/pending styling
+  function renderUploads() {
+    const list = document.getElementById('uploadsList');
+    list.innerHTML = '';
+    uploads.forEach(u => {
+      const li = document.createElement('li');
+      li.className = 'upload-item ' + (u.verified ? 'verified' : 'pending');
+      li.textContent = `Weight: ${u.weight} kg – ${u.verified ? '✅ Verified' : '⏳ Pending'}`;
+      list.appendChild(li);
+    });
+  }
+
+  // Render fictional leaderboard
+  function renderLeaderboard() {
+    // Simple: sort by coins descending
+    leaderboard.sort((a,b) => b.coins - a.coins);
+    const list = document.getElementById('leaderList');
+    list.innerHTML = '';
+    leaderboard.forEach((user, idx) => {
+      const li = document.createElement('li');
+      li.textContent = `${idx + 1}. ${user.name} – ${user.coins} coins`;
+      list.appendChild(li);
+    });
+  }
+
+  // Validate weight input field live
+  function validateWeight() {
+    const input = document.getElementById('weightInput');
+    const weight = parseFloat(input.value);
+    if (!weight || weight <= 0) {
+      input.style.border = '2px solid var(--error)';
+      return false;
+    } else {
+      input.style.border = '2px solid var(--success)';
+      return true;
+    }
+  }
+  document.getElementById('weightInput').addEventListener('input', validateWeight);
+
+  // Validate file inputs (basic type & size)
+  function validateFiles() {
+    const image = document.getElementById('imageFile').files[0];
+    const video = document.getElementById('videoFile').files[0];
+    if (!image) {
+      notify("Please upload an image showing the scale and plastic bundle.", 'error');
+      return false;
+    }
+    if (!video) {
+      notify("Please upload a video showing the bundle being opened on the scale.", 'error');
+      return false;
+    }
+    // Optional: check file size limits, e.g. max 5MB image, max 20MB video
+    if(image.size > 5 * 1024 * 1024) {
+      notify("Image file size must be less than 5MB.", 'error');
+      return false;
+    }
+    if(video.size > 20 * 1024 * 1024) {
+      notify("Video file size must be less than 20MB.", 'error');
+      return false;
+    }
+    return true;
+  }
+
+  // Upload proof handler with validations & updates
+  function uploadProof() {
+    if (!validateWeight() || !validateFiles()) return;
+
+    // Store upload with unverified status
+    const weight = parseFloat(document.getElementById('weightInput').value);
+    const id = Date.now();
+    uploads.push({ id, weight, verified: false, ts: id });
+    localStorage.setItem('uploads', JSON.stringify(uploads));
+
+    // Clear fields after upload
+    document.getElementById('weightInput').value = '';
+    document.getElementById('weightInput').style.border = '2px solid transparent';
+    document.getElementById('imageFile').value = '';
+    document.getElementById('videoFile').value = '';
+
+    notify("Proof uploaded successfully!");
+    renderUploads();
+  }
+
+  // Simulated verification of pending uploads after 10 sec for demo
+  // Verified uploads get their weight added to kg & coins rewarded (10 coins/kg)
+  function verifySubmissions() {
+    const now = Date.now();
+    let verifiedAny = false;
+    uploads.forEach(u => {
+      if (!u.verified && now - u.ts > 10000) { // 10 seconds delay for demo
+        u.verified = true;
+        coins += Math.floor(u.weight * 10);
+        kg += u.weight;
+        verifiedAny = true;
+      }
+    });
+    if(verifiedAny) {
+      notify("Some submissions have been verified!");
+      updateWallet();
+      localStorage.setItem('uploads', JSON.stringify(uploads));
+    } else {
+      notify("No submissions ready for verification yet.", 'error');
+    }
+    renderUploads();
+  }
+
+  // Convert 50 coins to ₹1
+  function convertCoins() {
+    if(coins < 50) {
+      notify("You need at least 50 coins to convert.", 'error');
+      return;
+    }
+    const convertableUnits = Math.floor(coins / 50);
+    coins -= convertableUnits * 50;
+    money += convertableUnits;
+    notify(`Converted ${convertableUnits * 50} coins to ₹${convertableUnits}!`);
+    updateWallet();
+  }
+
+  // Start a simple awareness game that costs 20 coins to play
+  function startGame() {
+    if(coins < 20) {
+      notify("Not enough coins to start the game. Earn more by uploading proofs.", 'error');
+      return;
+    }
+    coins -= 20;
+    updateWallet();
+    notify("Game started! Collect virtual plastic items to earn coins.");
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.style.display = 'block';
+
+    // Simple collect and avoid game demo
+    let score = 0;
+    let player = {x:270, y:280, size:30};
+    let plastics = [];
+    let gameInterval, spawnInterval;
+    
+    function drawPlayer() {
+      ctx.fillStyle = '#2e7d32';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size/2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#a5d6a7';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('♻️', player.x - 10, player.y + 6);
+    }
+    
+    function spawnPlastic() {
+      const size = 20;
+      plastics.push({
+        x: Math.random() * (canvas.width - size),
+        y: -size,
+        size,
+        speed: 2 + Math.random() * 2
+      });
+    }
+    
+    function drawPlastic() {
+      ctx.fillStyle = '#81c784';
+      plastics.forEach(p => {
+        ctx.beginPath();
+        ctx.rect(p.x, p.y, p.size, p.size);
+        ctx.fill();
+      });
+    }
+    
+    function updatePlastics() {
+      plastics.forEach((p, i) => {
+        p.y += p.speed;
+        if (p.y > canvas.height) {
+          plastics.splice(i, 1);
+        }
+      });
+    }
+    
+    function collision() {
+      for(let i = plastics.length -1; i >= 0; i--) {
+        const p = plastics[i];
+        const dx = player.x - (p.x + p.size/2);
+        const dy = player.y - (p.y + p.size/2);
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        if(distance < player.size/2 + p.size/2) {
+          plastics.splice(i,1);
+          score += 5;
+          notify('Collected 5 coins!', 'success');
+          coins += 5;
+          updateWallet();
+        }
+      }
+    }
+    
+    function gameLoop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      drawPlayer();
+      drawPlastic();
+      updatePlastics();
+      collision();
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(`Score: ${score}`, 10, 25);
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      clearInterval(spawnInterval);
+      canvas.style.display = 'none';
+      notify(`Game over! You scored ${score} points and earned coins.`);
+      updateWallet();
+    }
+
+    // Keyboard controls for player
+    function onKeyDown(e) {
+      if(e.key === 'ArrowLeft') player.x -= 20;
+      if(e.key === 'ArrowRight') player.x += 20;
+      player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
+    }
+    window.addEventListener('keydown', onKeyDown);
+
+    spawnInterval = setInterval(spawnPlastic, 1000);
+    gameInterval = setInterval(gameLoop, 40);
+    setTimeout(() => { // End game after 30 seconds
+      endGame();
+      window.removeEventListener('keydown', onKeyDown);
+    }, 30000);
+  }
+
+  // Initial renders and wallet update
+  updateWallet();
+  renderUploads();
+
+  // Mock leaderboard data for demo
+  if(leaderboard.length === 0) {
+    leaderboard = [
+      {name: 'Alice', coins: 150},
+      {name: 'Bob', coins: 100},
+      {name: 'Charlie', coins: 80},
+      {name: 'You', coins: coins}
+    ];
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+  }
+  renderLeaderboard();
+</script>
+
+</body>
+</html>
