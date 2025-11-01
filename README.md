@@ -10,6 +10,8 @@ all while contributing to a cleaner planet.
 Live link: https://polybank07.netlify.app/
 
 Preview
+<img width="1916" height="1078" alt="image" src="https://github.com/user-attachments/assets/c066a919-9436-4daa-8726-b89ee307a4e8" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/086160d7-ca19-46cd-90d5-511f39c3da4e" />
 
 Features
 - Upload image & video proof (bundle + weight verification)  
